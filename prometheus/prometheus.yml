@@ -1,0 +1,36 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'nvidia-monitor'
+
+scrape_configs:
+  - job_name: 'nvidia-exporter'
+    static_configs:
+      - targets:
+          - 'host.docker.internal:9835'
+          - '10.12.0.64:9400'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+
+  - job_name: 'node_exporter'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['host.docker.internal:9182']
+      - targets: ['YOUR_LAN_IP:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: 'host\.docker\.internal:9182'
+        target_label: instance
+        replacement: 'kuda-jumping (YOUR_SERVER_IP)'
+      - source_labels: [__address__]
+        regex: '192\.168\.20\.187:9100'
+        target_label: instance
+        replacement: 'server-sm (YOUR_LAN_IP)'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
